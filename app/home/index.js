@@ -17,7 +17,7 @@
     port: 3000
   });
 
-  server.app.db = mongojs("192.168.99.100:27017/local", ["words", "group", "core", "analog"]);
+  server.app.db = mongojs("t521_db/local", ["words", "group", "core", "analog"]);
 
   registerArr = [
     {
