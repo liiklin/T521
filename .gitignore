@@ -31,7 +31,7 @@ output/
 output.tar.gz
 
 #忽略根目录的app文件夹
-/app/
+#/app/
 
 runtime/
 .DS_Store
