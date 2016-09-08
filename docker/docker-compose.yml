@@ -1,11 +1,11 @@
-T521_web:
-  image: t521_web
+web:
+  image: web
   ports:
-    - "3000:3000"
+    - "8088:8088"
   links:
-    - T521_db
+    - db
 
-T521_db:
+db:
   image: daocloud.io/library/mongo
   ports:
     - "27017:27017"
