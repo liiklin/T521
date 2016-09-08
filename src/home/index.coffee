@@ -9,7 +9,7 @@ mongojs = require "mongojs"
 server = new Hapi.Server()
 # 设置端口
 server.connection
-  host: "localhost"
+  # host: "localhost"
   port: 3000
 
 # db 设置
@@ -48,4 +48,4 @@ server.register registerArr , (err) ->
   server.start (err) ->
     if err
       throw err
-    console.log "Server is running at:", server.info.uri
+    console.log "Server is running at:#{server.info.uri}"

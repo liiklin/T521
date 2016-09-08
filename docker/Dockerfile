@@ -14,13 +14,13 @@ RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
 # If your project depends on many package, you can use cnpm instead of npm
-RUN npm install cnpm -g --registry=https://registry.npm.taobao.org
+# RUN npm install cnpm -g --registry=https://registry.npm.taobao.org
 # RUN cnpm install
 
 # Install app dependencies
 COPY package.json /usr/src/app/
 # RUN npm install
-RUN cnpm install
+RUN npm install --registry=https://registry.npm.taobao.org
 
 # Bundle app source
 COPY . /usr/src/app

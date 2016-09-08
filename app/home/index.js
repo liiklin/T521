@@ -12,7 +12,6 @@ mongojs = require("mongojs");
 server = new Hapi.Server();
 
 server.connection({
-  host: "localhost",
   port: 3000
 });
 
@@ -57,6 +56,6 @@ server.register(registerArr, function(err) {
     if (err) {
       throw err;
     }
-    return console.log("Server is running at:", server.info.uri);
+    return console.log("Server is running at:" + server.info.uri);
   });
 });
