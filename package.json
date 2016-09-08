@@ -1,6 +1,6 @@
 {
-  "name": "coffee-node",
-  "description": "coffee nodejs",
+  "name": "T521",
+  "description": "T521",
   "version": "1.0.0",
   "scripts": {
     "start": "npm run compile && supervisor app/home/index.js",
@@ -14,9 +14,9 @@
     "good-console": "^6.1.2",
     "good-squeeze": "^4.0.0",
     "hapi": "^14.1.0",
-    "hapi-mongodb": "^6.0.0",
     "joi": "^9.0.4",
     "moment": "^2.14.1",
+    "mongojs": "^2.4.0",
     "node-uuid": "^1.4.7",
     "source-map-support": "0.4.0",
     "underscore": "^1.8.3"
