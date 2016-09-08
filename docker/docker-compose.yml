@@ -6,6 +6,6 @@ web:
     - db
 
 db:
-  image: daocloud.io/library/mongo
+  image: index.alauda.cn/library/mongo
   ports:
     - "27017:27017"

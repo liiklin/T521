@@ -62,19 +62,28 @@ exports.register = (server, options, next) ->
         search = queryArgs.search or "*"
         if search isnt "*"
           findOpts.id = search
-        # 查询
-        db.core.find findOpts, (err, result) ->
-          if err
-            return res Boom.wrap err, "Internal MongoDB error"
+        #查询 group
+        db.group.find "group_id": gid, (err, result) ->
           if result.length isnt 0
-            contains = _.pluck result , "id"
-            analogs = _.union _.flatten _.pluck result , "analogs"
-            resObj =
-              "existed": true
-              "contains": contains
-              "analogs": analogs
-            res resObj
+            db.core.find findOpts, (err, result) ->
+              console.log "core result-->#{result.length isnt 0}"
+              if err
+                return res Boom.wrap err, "Internal MongoDB error"
+              if result.length isnt 0
+                contains = _.pluck result , "id"
+                analogs = _.union _.flatten _.pluck result , "analogs"
+                resObj =
+                  "existed": true
+                  "contains": contains
+                  "analogs": analogs
+                res resObj
+              else
+                console.log false
+                res "existed": false
           else
+            # 插入groups
+            db.group.save "group_id": gid, (err, result) ->
+              console.log "group save-->#{result}"
             res "existed": false
       else
         # 添加
@@ -99,7 +108,6 @@ exports.register = (server, options, next) ->
         .done ->
           console.log "success"
           res "result": "success"
-          return
 
   server.route
     method: ["GET","DELETE"]

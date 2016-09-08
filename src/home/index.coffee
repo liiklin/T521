@@ -13,7 +13,7 @@ server.connection
   port: 3000
 
 # db 设置
-server.app.db = mongojs("db:27017/local", ["words","group","core","analog"]) ;
+server.app.db = mongojs("192.168.59.103:27017/local", ["words","group","core","analog"]) ;
 
 # register设置
 registerArr = [

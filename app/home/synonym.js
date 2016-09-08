@@ -86,21 +86,38 @@ exports.register = function(server, options, next) {
         if (search !== "*") {
           findOpts.id = search;
         }
-        return db.core.find(findOpts, function(err, result) {
-          var analogs, contains, resObj;
-          if (err) {
-            return res(Boom.wrap(err, "Internal MongoDB error"));
-          }
+        return db.group.find({
+          "group_id": gid
+        }, function(err, result) {
           if (result.length !== 0) {
-            contains = _.pluck(result, "id");
-            analogs = _.union(_.flatten(_.pluck(result, "analogs")));
-            resObj = {
-              "existed": true,
-              "contains": contains,
-              "analogs": analogs
-            };
-            return res(resObj);
+            return db.core.find(findOpts, function(err, result) {
+              var analogs, contains, resObj;
+              console.log("core result-->" + (result.length !== 0));
+              if (err) {
+                return res(Boom.wrap(err, "Internal MongoDB error"));
+              }
+              if (result.length !== 0) {
+                contains = _.pluck(result, "id");
+                analogs = _.union(_.flatten(_.pluck(result, "analogs")));
+                resObj = {
+                  "existed": true,
+                  "contains": contains,
+                  "analogs": analogs
+                };
+                return res(resObj);
+              } else {
+                console.log(false);
+                return res({
+                  "existed": false
+                });
+              }
+            });
           } else {
+            db.group.save({
+              "group_id": gid
+            }, function(err, result) {
+              return console.log("group save-->" + result);
+            });
             return res({
               "existed": false
             });
@@ -136,7 +153,7 @@ exports.register = function(server, options, next) {
         });
         return Promise.all(taskLists).done(function() {
           console.log("success");
-          res({
+          return res({
             "result": "success"
           });
         });
