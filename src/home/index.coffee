@@ -9,11 +9,14 @@ mongojs = require "mongojs"
 server = new Hapi.Server()
 # 设置端口
 server.connection
-  # host: "localhost"
   port: 3000
 
 # db 设置
-server.app.db = mongojs("192.168.59.103:27017/local", ["words","group","core","analog"]) ;
+# 生产环境和开发环境
+if process.env.NODE_ENV is "production"
+  server.app.db = mongojs("db:27017/local", ["words","group","core","analog"]) ;
+else
+  server.app.db = mongojs("192.168.59.103:27017/local", ["words","group","core","analog"]) ;
 
 # register设置
 registerArr = [

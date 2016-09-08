@@ -1,5 +1,5 @@
 web:
-  image: web
+  image: index.alauda.cn/liiklin/t521
   ports:
     - "3000:3000"
   links:

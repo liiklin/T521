@@ -15,7 +15,11 @@ server.connection({
   port: 3000
 });
 
-server.app.db = mongojs("192.168.59.103:27017/local", ["words", "group", "core", "analog"]);
+if (process.env.NODE_ENV === "production") {
+  server.app.db = mongojs("db:27017/local", ["words", "group", "core", "analog"]);
+} else {
+  server.app.db = mongojs("192.168.59.103:27017/local", ["words", "group", "core", "analog"]);
+}
 
 registerArr = [
   {
