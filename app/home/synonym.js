@@ -92,7 +92,6 @@ exports.register = function(server, options, next) {
           if (result.length !== 0) {
             return db.core.find(findOpts, function(err, result) {
               var analogs, contains, resObj;
-              console.log("core result-->" + (result.length !== 0));
               if (err) {
                 return res(Boom.wrap(err, "Internal MongoDB error"));
               }
@@ -106,7 +105,6 @@ exports.register = function(server, options, next) {
                 };
                 return res(resObj);
               } else {
-                console.log(false);
                 return res({
                   "existed": false
                 });
@@ -115,9 +113,7 @@ exports.register = function(server, options, next) {
           } else {
             db.group.save({
               "group_id": gid
-            }, function(err, result) {
-              return console.log("group save-->" + result);
-            });
+            }, function(err, result) {});
             return res({
               "existed": false
             });
@@ -152,7 +148,7 @@ exports.register = function(server, options, next) {
           return taskLists.push(task);
         });
         return Promise.all(taskLists).done(function() {
-          console.log("success");
+          console.log("taskLists save done");
           return res({
             "result": "success"
           });

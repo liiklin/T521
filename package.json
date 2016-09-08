@@ -3,9 +3,9 @@
   "description": "T521",
   "version": "1.0.0",
   "scripts": {
-    "start": "npm run compile && supervisor app/home/index.js",
-    "compile": "coffee -c -m -o app/home/ src/home/",
-    "watch": "coffee -c -w -m -o app/home/ src/home/"
+    "start": "npm run compile && NODE_ENV=dev supervisor app/home/index.js",
+    "compile": "coffee -c -b -m -o app/ src/",
+    "watch": "coffee -c -b -w -m -o app/ src/"
   },
   "dependencies": {
     "bluebird": "^3.4.6",

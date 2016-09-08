@@ -51,4 +51,4 @@ server.register registerArr , (err) ->
   server.start (err) ->
     if err
       throw err
-    console.log "Server is running at:#{server.info.uri}"
+    console.log "Server is running at:#{server.info.uri} in #{process.env.NODE_ENV}"

@@ -60,6 +60,6 @@ server.register(registerArr, function(err) {
     if (err) {
       throw err;
     }
-    return console.log("Server is running at:" + server.info.uri);
+    return console.log("Server is running at:" + server.info.uri + " in " + process.env.NODE_ENV);
   });
 });

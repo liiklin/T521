@@ -27,6 +27,7 @@ COPY . /usr/src/app
 
 # Expose port
 ENV PORT 3000
+ENV NODE_ENV production
 EXPOSE 3000
 
 ENTRYPOINT node app/home/index.js
