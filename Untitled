@@ -1,3 +1,0 @@
-docker run -p 27017:27017 -p 28017:28017 -e MONGODB_USER="admin" -e MONGODB_DATABASE="synonym" -e MONGODB_PASS="mypass"  --name=mongo daocloud.io/library/mongo
-curl http://127.0.0.1:3000/synonym/groups/food/analogs/食物?action=unlink
-get http://127.0.0.1:3000/synonym/groups/food/analogs/食物?action=unlink
