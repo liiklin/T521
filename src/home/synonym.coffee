@@ -137,19 +137,31 @@ exports.register = (server, options, next) ->
           "id": id
       method = req.raw.req.method
       if method is "GET"
-        # 更新
+        # 查询
         db.core.findOne findOpts, {"_id": 0} , (err, result) ->
           if err
             return res Boom.wrap err, "Internal MongoDB error"
           res result
       else
         # 删除
-        db.core.remove findOpts, (err, result) ->
-          if err
-            return res Boom.wrap err, "Internal MongoDB error"
-          if result.n is 0
-            return res Boom.notFound()
-          res "result": "success"
+        db.core.findOne findOpts, (err, result) ->
+          # console.log result
+          analogs = result.analogs
+          #移除近义词的核心词
+          db.core.remove findOpts, (err, result) ->
+            if err
+              return res Boom.wrap err, "Internal MongoDB error"
+            if result.n is 0
+              return res Boom.notFound()
+            _.each analogs, (analog) ->
+              findArg =
+                "group_id": gid
+                "id": analog
+              updateObj =
+                cores: id
+              db.analog.update findArg, $pull: updateObj, (err, result) ->
+                console.log "result --> #{result}"
+            res "result": "success"
 
   # analogs
   server.route
@@ -185,6 +197,13 @@ exports.register = (server, options, next) ->
             db.analog.save saveObj, (err, result) ->
               if err
                 return res Boom.wrap err, "Internal MongoDB error"
+              coreFindOpts =
+                "group_id": gid
+                "id": req.payload.cores
+              coreUpdateObj =
+                "analogs": req.payload.id
+              db.core.update coreFindOpts, $addToSet: updateObj , (err, result) ->
+                console.log "analogs add success"
               res "result": "success"
           else
             updateObj =
@@ -192,6 +211,13 @@ exports.register = (server, options, next) ->
             db.analog.update findOpts, $addToSet: updateObj , (err, result) ->
               if err
                 return res Boom.wrap err, "Internal MongoDB error"
+              coreFindOpts =
+                "group_id": gid
+                "id": req.payload.cores
+              coreUpdateObj =
+                "analogs": req.payload.id
+              db.core.update coreFindOpts, $addToSet: updateObj , (err, result) ->
+                console.log "analogs add success"
               res "result": "success"
 
   server.route
@@ -223,6 +249,13 @@ exports.register = (server, options, next) ->
               return res Boom.wrap err, "Internal MongoDB error"
             if result.n is 0
               return res Boom.notFound()
+            coreFindOpts =
+              "group_id": gid
+              "id": req.payload.core
+            coreUpdateObj =
+              "analogs": req.payload.id
+            db.cores.update coreFindOpts, $pull: updateObj, (err, result) ->
+              console.log "update core success"
             db.analog.findOne findOpts, (err, result) ->
               if result.cores.length is 0
                 db.analog.remove findOpts
@@ -234,12 +267,31 @@ exports.register = (server, options, next) ->
           .code 404
       else
         # 删除
-        db.analog.remove findOpts, (err, result) ->
-          if err
-            return res Boom.wrap err, "Internal MongoDB error"
-          if result.n is 0
-            return res Boom.notFound()
-          res "result": "success"
+        # db.analog.remove findOpts, (err, result) ->
+        #   if err
+        #     return res Boom.wrap err, "Internal MongoDB error"
+        #   if result.n is 0
+        #     return res Boom.notFound()
+        #   res "result": "success"
+
+        db.analog.findOne findOpts, (err, result) ->
+          # console.log result
+          cores = result.cores
+          #移除近义词的核心词
+          db.analog.remove findOpts, (err, result) ->
+            if err
+              return res Boom.wrap err, "Internal MongoDB error"
+            if result.n is 0
+              return res Boom.notFound()
+            _.each cores, (core) ->
+              findArg =
+                "group_id": gid
+                "id": analog
+              updateObj =
+                analog: id
+              db.core.update findArg, $pull: updateObj, (err, result) ->
+                console.log "result --> #{result}"
+            res "result": "success"
 
   next()
 
