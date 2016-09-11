@@ -63,3 +63,5 @@ server.register(registerArr, function(err) {
     return console.log("Server is running at:" + server.info.uri + " in " + process.env.NODE_ENV);
   });
 });
+
+//# sourceMappingURL=index.js.map

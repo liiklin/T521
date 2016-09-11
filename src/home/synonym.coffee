@@ -1,6 +1,4 @@
 Boom = require "boom"
-uuid = require "node-uuid"
-Joi = require "joi"
 Url = require "url"
 Promise = require 'bluebird'
 _ = require "underscore"
@@ -17,7 +15,7 @@ exports.register = (server, options, next) ->
     path: "/#{synonymPath}/groups"
     handler: (req, res) ->
       # 查询数据库
-      db.group.find {} , (err, result) ->
+      db.group.find {} , {"_id": 0} , (err, result) ->
         if err
           return res Boom.wrap err, "Internal MongoDB error"
         res result
@@ -77,11 +75,22 @@ exports.register = (server, options, next) ->
                   "analogs": analogs
                 res resObj
               else
-                res "existed": false
+                resObj =
+                  "existed": false
+                  "contains": []
+                  "analogs": []
+                res resObj
           else
             # 插入groups
-            db.group.save "group_id": gid, (err, result) ->
-            res "existed": false
+            saveOBj =
+              "id": gid
+              "descr":""
+            db.group.save saveOBj, (err, result) ->
+            resObj =
+              "existed": false
+              "contains": []
+              "analogs": []
+            res resObj
       else
         # 添加
         postData = req.payload
@@ -118,7 +127,7 @@ exports.register = (server, options, next) ->
       method = req.raw.req.method
       if method is "GET"
         # 更新
-        db.core.findOne findOpts, (err, result) ->
+        db.core.findOne findOpts, {"_id": 0} , (err, result) ->
           if err
             return res Boom.wrap err, "Internal MongoDB error"
           res result
@@ -147,7 +156,7 @@ exports.register = (server, options, next) ->
         if search isnt "*"
           findOpts.id = search
         # 查询
-        db.analog.find findOpts, (err, result) ->
+        db.analog.find findOpts, {"_id": 0} , (err, result) ->
           if err
             return res Boom.wrap err, "Internal MongoDB error"
           res result
@@ -171,7 +180,7 @@ exports.register = (server, options, next) ->
       method = req.raw.req.method
       if method is "GET"
         # 查询
-        db.analog.findOne findOpts, (err, result) ->
+        db.analog.findOne findOpts, {"_id": 0} , (err, result) ->
           if err
             return res Boom.wrap err, "Internal MongoDB error"
           res result

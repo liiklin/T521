@@ -1,5 +1,4 @@
 Boom = require 'boom'
-uuid = require 'node-uuid'
 Url = require "url"
 
 searchrecPath = "searchrec"
@@ -24,7 +23,7 @@ exports.register = (server, options, next) ->
       if state isnt ""
         findOpts.state = state
       # 查询数据库
-      db.words.find findOpts, (err, result) ->
+      db.words.find findOpts, {"_id": 0} , (err, result) ->
         if err
           return res Boom.wrap err, "Internal MongoDB error"
         res result
