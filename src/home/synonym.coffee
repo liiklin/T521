@@ -61,7 +61,7 @@ exports.register = (server, options, next) ->
         if search isnt "*"
           findOpts.id = search
         #查询 group
-        db.group.find "group_id": gid, (err, result) ->
+        db.group.find "id": gid, (err, result) ->
           if result.length isnt 0
             db.core.find findOpts, (err, result) ->
               if err

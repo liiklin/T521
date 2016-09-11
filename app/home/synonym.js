@@ -85,7 +85,7 @@ exports.register = function(server, options, next) {
           findOpts.id = search;
         }
         return db.group.find({
-          "group_id": gid
+          "id": gid
         }, function(err, result) {
           var resObj, saveOBj;
           if (result.length !== 0) {
