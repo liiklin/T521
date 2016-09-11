@@ -72,7 +72,7 @@ exports.register = (server, options, next) ->
                 resObj =
                   "existed": true
                   "contains": contains
-                  "analogs": analogs
+                  "analogs": if _.isEmpty analogs[0] then [] else analogs
                 res resObj
               else
                 resObj =
@@ -97,6 +97,7 @@ exports.register = (server, options, next) ->
         saveArr = _.map postData , (data) ->
           "group_id": gid, "id": data
         taskLists = []
+        console.log saveArr
         _.each saveArr, (arr) ->
           task = new Promise (reslove, reject) ->
             db.core.find arr , (err, result) ->

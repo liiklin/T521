@@ -100,7 +100,7 @@ exports.register = function(server, options, next) {
                 resObj = {
                   "existed": true,
                   "contains": contains,
-                  "analogs": analogs
+                  "analogs": _.isEmpty(analogs[0]) ? [] : analogs
                 };
                 return res(resObj);
               } else {
@@ -135,6 +135,7 @@ exports.register = function(server, options, next) {
           };
         });
         taskLists = [];
+        console.log(saveArr);
         _.each(saveArr, function(arr) {
           var task;
           task = new Promise(function(reslove, reject) {
