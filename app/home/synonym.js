@@ -248,7 +248,7 @@ exports.register = function(server, options, next) {
             saveObj = {
               "group_id": gid,
               "id": req.payload.id,
-              "cores": [].push(req.payload.cores)
+              "cores": [req.payload.cores]
             };
             return db.analog.save(saveObj, function(err, result) {
               if (err) {
@@ -293,11 +293,9 @@ exports.register = function(server, options, next) {
         return db.analog.findOne(findOpts, {
           "_id": 0
         }, function(err, result) {
-          var cores;
           if (err) {
             return res(Boom.wrap(err, "Internal MongoDB error"));
           }
-          cores = _.pluck(result.cores);
           return res(result);
         });
       } else if (method === "PUT") {

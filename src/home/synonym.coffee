@@ -181,7 +181,7 @@ exports.register = (server, options, next) ->
             saveObj =
               "group_id": gid
               "id": req.payload.id
-              "cores": [].push req.payload.cores
+              "cores": [req.payload.cores]
             db.analog.save saveObj, (err, result) ->
               if err
                 return res Boom.wrap err, "Internal MongoDB error"
@@ -209,7 +209,6 @@ exports.register = (server, options, next) ->
         db.analog.findOne findOpts, {"_id": 0} , (err, result) ->
           if err
             return res Boom.wrap err, "Internal MongoDB error"
-          cores = _.pluck result.cores
           res result
       else if method is "PUT"
         # 修改
