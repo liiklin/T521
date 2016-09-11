@@ -66,6 +66,7 @@ exports.register = (server, options, next) ->
             db.core.find findOpts, (err, result) ->
               if err
                 return res Boom.wrap err, "Internal MongoDB error"
+              #精确查询到结果
               if result.length isnt 0
                 contains = _.pluck result , "id"
                 analogs = _.union _.flatten _.pluck result , "analogs"
@@ -73,13 +74,23 @@ exports.register = (server, options, next) ->
                   "existed": true
                   "contains": contains
                   "analogs": if _.isEmpty analogs[0] then [] else analogs
-                res resObj
+                findContains =
+                  "group_id": gid
+                  "id": new RegExp ".*#{search}.*"
+                db.core.find findContains, (err, result) ->
+                  resObj.contains = _.extend resObj.contains , _.pluck result , "id"
+                  res resObj
+              # 没有精确查询到结果
               else
-                resObj =
-                  "existed": false
-                  "contains": []
-                  "analogs": []
-                res resObj
+                findContains =
+                  "group_id": gid
+                  "id": new RegExp ".*#{search}.*"
+                db.core.find findContains, (err, result) ->
+                  resObj =
+                    "existed": false
+                    "contains": _.pluck result , "id"
+                    "analogs": []
+                  res resObj
           else
             # 插入groups
             saveOBj =
@@ -97,7 +108,6 @@ exports.register = (server, options, next) ->
         saveArr = _.map postData , (data) ->
           "group_id": gid, "id": data
         taskLists = []
-        console.log saveArr
         _.each saveArr, (arr) ->
           task = new Promise (reslove, reject) ->
             db.core.find arr , (err, result) ->
@@ -163,11 +173,26 @@ exports.register = (server, options, next) ->
           res result
       else
         # 添加
-        saveObj = _.extend findOpts , req.payload
-        db.analog.save saveObj, (err, result) ->
+        findOpts.id = req.payload.id
+        db.analog.find findOpts, (err, result) ->
           if err
             return res Boom.wrap err, "Internal MongoDB error"
-          res "result": "success"
+          if result.length is 0
+            saveObj =
+              "group_id": gid
+              "id": req.payload.id
+              "cores": [].push req.payload.cores
+            db.analog.save saveObj, (err, result) ->
+              if err
+                return res Boom.wrap err, "Internal MongoDB error"
+              res "result": "success"
+          else
+            updateObj =
+              cores: req.payload.cores
+            db.analog.update findOpts, $addToSet: updateObj , (err, result) ->
+              if err
+                return res Boom.wrap err, "Internal MongoDB error"
+              res "result": "success"
 
   server.route
     method: ["GET","PUT","DELETE"]
@@ -184,6 +209,7 @@ exports.register = (server, options, next) ->
         db.analog.findOne findOpts, {"_id": 0} , (err, result) ->
           if err
             return res Boom.wrap err, "Internal MongoDB error"
+          cores = _.pluck result.cores
           res result
       else if method is "PUT"
         # 修改
@@ -203,7 +229,10 @@ exports.register = (server, options, next) ->
                 db.analog.remove findOpts
             res "result": "success"
         else
-          res "result": "success"
+          resObj =
+            "error":"action is unlink"
+          res resObj
+          .code 404
       else
         # 删除
         db.analog.remove findOpts, (err, result) ->
@@ -214,6 +243,5 @@ exports.register = (server, options, next) ->
           res "result": "success"
 
   next()
-
 
 exports.register.attributes = name: "routes-#{synonymPath}"

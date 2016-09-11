@@ -90,7 +90,7 @@ exports.register = function(server, options, next) {
           var resObj, saveOBj;
           if (result.length !== 0) {
             return db.core.find(findOpts, function(err, result) {
-              var analogs, contains, resObj;
+              var analogs, contains, findContains, resObj;
               if (err) {
                 return res(Boom.wrap(err, "Internal MongoDB error"));
               }
@@ -102,14 +102,27 @@ exports.register = function(server, options, next) {
                   "contains": contains,
                   "analogs": _.isEmpty(analogs[0]) ? [] : analogs
                 };
-                return res(resObj);
-              } else {
-                resObj = {
-                  "existed": false,
-                  "contains": [],
-                  "analogs": []
+                findContains = {
+                  "group_id": gid,
+                  "id": new RegExp(".*" + search + ".*")
                 };
-                return res(resObj);
+                return db.core.find(findContains, function(err, result) {
+                  resObj.contains = _.extend(resObj.contains, _.pluck(result, "id"));
+                  return res(resObj);
+                });
+              } else {
+                findContains = {
+                  "group_id": gid,
+                  "id": new RegExp(".*" + search + ".*")
+                };
+                return db.core.find(findContains, function(err, result) {
+                  resObj = {
+                    "existed": false,
+                    "contains": _.pluck(result, "id"),
+                    "analogs": []
+                  };
+                  return res(resObj);
+                });
               }
             });
           } else {
@@ -135,7 +148,6 @@ exports.register = function(server, options, next) {
           };
         });
         taskLists = [];
-        console.log(saveArr);
         _.each(saveArr, function(arr) {
           var task;
           task = new Promise(function(reslove, reject) {
@@ -204,7 +216,7 @@ exports.register = function(server, options, next) {
     method: ["GET", "POST"],
     path: "/" + synonymPath + "/groups/{gid}/analogs",
     handler: function(req, res) {
-      var findOpts, gid, method, queryArgs, saveObj, search, uri;
+      var findOpts, gid, method, queryArgs, search, uri;
       gid = req.params.gid;
       findOpts = {
         "group_id": gid
@@ -226,14 +238,41 @@ exports.register = function(server, options, next) {
           return res(result);
         });
       } else {
-        saveObj = _.extend(findOpts, req.payload);
-        return db.analog.save(saveObj, function(err, result) {
+        findOpts.id = req.payload.id;
+        return db.analog.find(findOpts, function(err, result) {
+          var saveObj, updateObj;
           if (err) {
             return res(Boom.wrap(err, "Internal MongoDB error"));
           }
-          return res({
-            "result": "success"
-          });
+          if (result.length === 0) {
+            saveObj = {
+              "group_id": gid,
+              "id": req.payload.id,
+              "cores": [].push(req.payload.cores)
+            };
+            return db.analog.save(saveObj, function(err, result) {
+              if (err) {
+                return res(Boom.wrap(err, "Internal MongoDB error"));
+              }
+              return res({
+                "result": "success"
+              });
+            });
+          } else {
+            updateObj = {
+              cores: req.payload.cores
+            };
+            return db.analog.update(findOpts, {
+              $addToSet: updateObj
+            }, function(err, result) {
+              if (err) {
+                return res(Boom.wrap(err, "Internal MongoDB error"));
+              }
+              return res({
+                "result": "success"
+              });
+            });
+          }
         });
       }
     }
@@ -242,7 +281,7 @@ exports.register = function(server, options, next) {
     method: ["GET", "PUT", "DELETE"],
     path: "/" + synonymPath + "/groups/{gid}/analogs/{id}",
     handler: function(req, res) {
-      var action, findOpts, gid, id, method, queryArgs, updateObj, uri;
+      var action, findOpts, gid, id, method, queryArgs, resObj, updateObj, uri;
       gid = req.params.gid;
       id = req.params.id;
       findOpts = {
@@ -254,9 +293,11 @@ exports.register = function(server, options, next) {
         return db.analog.findOne(findOpts, {
           "_id": 0
         }, function(err, result) {
+          var cores;
           if (err) {
             return res(Boom.wrap(err, "Internal MongoDB error"));
           }
+          cores = _.pluck(result.cores);
           return res(result);
         });
       } else if (method === "PUT") {
@@ -286,9 +327,10 @@ exports.register = function(server, options, next) {
             });
           });
         } else {
-          return res({
-            "result": "success"
-          });
+          resObj = {
+            "error": "action is unlink"
+          };
+          return res(resObj).code(404);
         }
       } else {
         return db.analog.remove(findOpts, function(err, result) {
