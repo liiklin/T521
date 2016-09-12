@@ -76,7 +76,8 @@ exports.register = (server, options, next) ->
                   "analogs": if _.isEmpty analogs[0] then [] else analogs
                 findContains =
                   "group_id": gid
-                  "id": new RegExp ".*#{search}.*"
+                if findContains isnt ""
+                  findContains.id = new RegExp ".*#{search}.*"
                 db.core.find findContains, (err, result) ->
                   resObj.contains = _.extend resObj.contains , _.pluck result , "id"
                   res resObj
@@ -145,7 +146,6 @@ exports.register = (server, options, next) ->
       else
         # 删除
         db.core.findOne findOpts, (err, result) ->
-          # console.log result
           analogs = result.analogs
           #移除近义词的核心词
           db.core.remove findOpts, (err, result) ->
@@ -216,9 +216,16 @@ exports.register = (server, options, next) ->
                 "id": req.payload.cores
               coreUpdateObj =
                 "analogs": req.payload.id
-              db.core.update coreFindOpts, $addToSet: updateObj , (err, result) ->
-                console.log "analogs add success"
-              res "result": "success"
+              db.core.find coreFindOpts, (err, result) ->
+                if result.length isnt 0
+                  db.core.update coreFindOpts, $addToSet: coreUpdateObj , (err, result) ->
+                    console.log "analogs add success"
+                    res "result": "success"
+                else
+                  resObj =
+                    "error":"#{req.payload.cores}，在核心词没有找到"
+                  res resObj
+                  .code 404
 
   server.route
     method: ["GET","PUT","DELETE"]
@@ -267,13 +274,6 @@ exports.register = (server, options, next) ->
           .code 404
       else
         # 删除
-        # db.analog.remove findOpts, (err, result) ->
-        #   if err
-        #     return res Boom.wrap err, "Internal MongoDB error"
-        #   if result.n is 0
-        #     return res Boom.notFound()
-        #   res "result": "success"
-
         db.analog.findOne findOpts, (err, result) ->
           # console.log result
           cores = result.cores

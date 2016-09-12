@@ -103,9 +103,11 @@ exports.register = function(server, options, next) {
                   "analogs": _.isEmpty(analogs[0]) ? [] : analogs
                 };
                 findContains = {
-                  "group_id": gid,
-                  "id": new RegExp(".*" + search + ".*")
+                  "group_id": gid
                 };
+                if (findContains !== "") {
+                  findContains.id = new RegExp(".*" + search + ".*");
+                }
                 return db.core.find(findContains, function(err, result) {
                   resObj.contains = _.extend(resObj.contains, _.pluck(result, "id"));
                   return res(resObj);
@@ -198,15 +200,34 @@ exports.register = function(server, options, next) {
           return res(result);
         });
       } else {
-        return db.core.remove(findOpts, function(err, result) {
-          if (err) {
-            return res(Boom.wrap(err, "Internal MongoDB error"));
-          }
-          if (result.n === 0) {
-            return res(Boom.notFound());
-          }
-          return res({
-            "result": "success"
+        return db.core.findOne(findOpts, function(err, result) {
+          var analogs;
+          analogs = result.analogs;
+          return db.core.remove(findOpts, function(err, result) {
+            if (err) {
+              return res(Boom.wrap(err, "Internal MongoDB error"));
+            }
+            if (result.n === 0) {
+              return res(Boom.notFound());
+            }
+            _.each(analogs, function(analog) {
+              var findArg, updateObj;
+              findArg = {
+                "group_id": gid,
+                "id": analog
+              };
+              updateObj = {
+                cores: id
+              };
+              return db.analog.update(findArg, {
+                $pull: updateObj
+              }, function(err, result) {
+                return console.log("result --> " + result);
+              });
+            });
+            return res({
+              "result": "success"
+            });
           });
         });
       }
@@ -251,9 +272,22 @@ exports.register = function(server, options, next) {
               "cores": [req.payload.cores]
             };
             return db.analog.save(saveObj, function(err, result) {
+              var coreFindOpts, coreUpdateObj;
               if (err) {
                 return res(Boom.wrap(err, "Internal MongoDB error"));
               }
+              coreFindOpts = {
+                "group_id": gid,
+                "id": req.payload.cores
+              };
+              coreUpdateObj = {
+                "analogs": req.payload.id
+              };
+              db.core.update(coreFindOpts, {
+                $addToSet: updateObj
+              }, function(err, result) {
+                return console.log("analogs add success");
+              });
               return res({
                 "result": "success"
               });
@@ -265,11 +299,34 @@ exports.register = function(server, options, next) {
             return db.analog.update(findOpts, {
               $addToSet: updateObj
             }, function(err, result) {
+              var coreFindOpts, coreUpdateObj;
               if (err) {
                 return res(Boom.wrap(err, "Internal MongoDB error"));
               }
-              return res({
-                "result": "success"
+              coreFindOpts = {
+                "group_id": gid,
+                "id": req.payload.cores
+              };
+              coreUpdateObj = {
+                "analogs": req.payload.id
+              };
+              return db.core.find(coreFindOpts, function(err, result) {
+                var resObj;
+                if (result.length !== 0) {
+                  return db.core.update(coreFindOpts, {
+                    $addToSet: coreUpdateObj
+                  }, function(err, result) {
+                    console.log("analogs add success");
+                    return res({
+                      "result": "success"
+                    });
+                  });
+                } else {
+                  resObj = {
+                    "error": req.payload.cores + "，在核心词没有找到"
+                  };
+                  return res(resObj).code(404);
+                }
               });
             });
           }
@@ -309,12 +366,25 @@ exports.register = function(server, options, next) {
           return db.analog.update(findOpts, {
             $pull: updateObj
           }, function(err, result) {
+            var coreFindOpts, coreUpdateObj;
             if (err) {
               return res(Boom.wrap(err, "Internal MongoDB error"));
             }
             if (result.n === 0) {
               return res(Boom.notFound());
             }
+            coreFindOpts = {
+              "group_id": gid,
+              "id": req.payload.core
+            };
+            coreUpdateObj = {
+              "analogs": req.payload.id
+            };
+            db.cores.update(coreFindOpts, {
+              $pull: updateObj
+            }, function(err, result) {
+              return console.log("update core success");
+            });
             db.analog.findOne(findOpts, function(err, result) {
               if (result.cores.length === 0) {
                 return db.analog.remove(findOpts);
@@ -331,15 +401,34 @@ exports.register = function(server, options, next) {
           return res(resObj).code(404);
         }
       } else {
-        return db.analog.remove(findOpts, function(err, result) {
-          if (err) {
-            return res(Boom.wrap(err, "Internal MongoDB error"));
-          }
-          if (result.n === 0) {
-            return res(Boom.notFound());
-          }
-          return res({
-            "result": "success"
+        return db.analog.findOne(findOpts, function(err, result) {
+          var cores;
+          cores = result.cores;
+          return db.analog.remove(findOpts, function(err, result) {
+            if (err) {
+              return res(Boom.wrap(err, "Internal MongoDB error"));
+            }
+            if (result.n === 0) {
+              return res(Boom.notFound());
+            }
+            _.each(cores, function(core) {
+              var findArg;
+              findArg = {
+                "group_id": gid,
+                "id": analog
+              };
+              updateObj = {
+                analog: id
+              };
+              return db.core.update(findArg, {
+                $pull: updateObj
+              }, function(err, result) {
+                return console.log("result --> " + result);
+              });
+            });
+            return res({
+              "result": "success"
+            });
           });
         });
       }
