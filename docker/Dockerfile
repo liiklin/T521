@@ -34,4 +34,4 @@ ENV NODE_ENV production
 EXPOSE 3000
 
 # ENTRYPOINT node app/home/index.js
-ENTRYPOINT nodemon src/index.coffee
+ENTRYPOINT nodemon app/index.js
