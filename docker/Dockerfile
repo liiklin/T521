@@ -21,13 +21,15 @@ WORKDIR /usr/src/app
 COPY package.json /usr/src/app/
 # RUN npm install
 RUN npm install --registry=https://registry.npm.taobao.org --production
+RUN npm install nodemon --registry=https://registry.npm.taobao.org --production
 
 # Bundle app source
 COPY . /usr/src/app
 
 # Expose port
-ENV PORT 3000
+# ENV PORT 3000
 ENV NODE_ENV production
 EXPOSE 3000
 
-ENTRYPOINT node app/home/index.js
+# ENTRYPOINT node app/home/index.js
+ENTRYPOINT nodemon src/index.coffee

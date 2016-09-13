@@ -1,15 +1,20 @@
 Boom = require 'boom'
 Url = require "url"
-
-searchrecPath = "searchrec"
+# models
+wordsModel = require "../models/words"
 
 # searchrec路由
 exports.register = (server, options, next) ->
-  db = server.app.db
+  db = server.plugins['hapi-mongoose'].connection
+  mongoose = server.plugins['hapi-mongoose'].lib
+  Schema = mongoose.Schema
+  # entry init
+  wordSchema = new Schema wordsModel
+  Word = db.model 'words', wordSchema
 
   server.route
     method: "GET"
-    path: "/#{searchrecPath}/groups/{gid}/words"
+    path: "/groups/{gid}/words"
     handler: (req, res) ->
       uri = req.raw.req.url
       queryArgs = Url.parse(uri, true).query
@@ -20,17 +25,16 @@ exports.register = (server, options, next) ->
         "group_id": gid
         "times":
           $gt: top
-      if state isnt ""
-        findOpts.state = state
-      # 查询数据库
-      db.words.find findOpts, {"_id": 0} , (err, result) ->
-        if err
-          return res Boom.wrap err, "Internal MongoDB error"
-        res result
+      Word.find {} , {"_id": 0,"__v": 0}
+      .then (words) ->
+        res words
+      .catch (err) ->
+        console.error err
+        res Boom.wrap err
 
   server.route
     method: ["PUT","DELETE"]
-    path: "/#{searchrecPath}/groups/{gid}/words/{id}"
+    path: "/groups/{gid}/words/{id}"
     handler: (req, res) ->
       gid = req.params.gid
       id = req.params.id
@@ -40,21 +44,25 @@ exports.register = (server, options, next) ->
       method = req.raw.req.method
       if method is "PUT"
         # 更新
-        db.words.update findOpts, $set: req.payload, (err, result) ->
-          if err
-            return res Boom.wrap err, "Internal MongoDB error"
+        Word.update findOpts, $set: req.payload
+        .then (result) ->
           if result.n is 0
             return res Boom.notFound()
           res "result": "success"
+        .catch (err) ->
+          console.error err
+          res Boom.wrap err
       else
       # 删除
-        db.words.remove findOpts, (err, result) ->
-          if err
-            return res Boom.wrap err, "Internal MongoDB error"
+        Word.remove findOpts
+        .then (result) ->
           if result.n is 0
             return res Boom.notFound()
           res "result": "success"
+        .catch (err) ->
+          console.error err
+          res Boom.wrap err
 
   next()
 
-exports.register.attributes = name: "routes-#{searchrecPath}"
+exports.register.attributes = name: "routes-searchrec"
