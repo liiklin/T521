@@ -26,6 +26,8 @@ RUN npm install nodemon --registry=https://registry.npm.taobao.org --production
 # Bundle app source
 COPY . /usr/src/app
 
+RUN npm run compile
+
 # Expose port
 # ENV PORT 3000
 ENV NODE_ENV production
