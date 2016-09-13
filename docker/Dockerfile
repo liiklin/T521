@@ -21,7 +21,7 @@ WORKDIR /usr/src/app
 COPY package.json /usr/src/app/
 # RUN npm install
 RUN npm install --registry=https://registry.npm.taobao.org --production
-RUN npm install nodemon --registry=https://registry.npm.taobao.org --production
+RUN npm install nodemon coffee-script --registry=https://registry.npm.taobao.org --production
 
 # Bundle app source
 COPY . /usr/src/app
