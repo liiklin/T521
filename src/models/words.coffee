@@ -9,8 +9,10 @@ schema =
   state:
     type: String
     required: true
+    default: "orphan"
   times:
     type: Number
     required: true
+    default: 1
 
 module.exports = schema

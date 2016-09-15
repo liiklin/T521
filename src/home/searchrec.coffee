@@ -1,36 +1,58 @@
-Boom = require 'boom'
+Boom = require "boom"
 Url = require "url"
 # models
 wordsModel = require "../models/words"
 
 # searchrec路由
 exports.register = (server, options, next) ->
-  db = server.plugins['hapi-mongoose'].connection
-  mongoose = server.plugins['hapi-mongoose'].lib
+  db = server.plugins["hapi-mongoose"].connection
+  mongoose = server.plugins["hapi-mongoose"].lib
   Schema = mongoose.Schema
   # entry init
   wordSchema = new Schema wordsModel
-  Word = db.model 'words', wordSchema
+  Word = db.model "words", wordSchema
 
   server.route
-    method: "GET"
+    method: ["GET","POST"]
     path: "/groups/{gid}/words"
     handler: (req, res) ->
       uri = req.raw.req.url
       queryArgs = Url.parse(uri, true).query
       gid = req.params.gid
-      top = Number queryArgs.top or "20"
-      state = queryArgs.state or ""
-      findOpts =
-        "group_id": gid
-        "times":
-          $gt: top
-      Word.find {} , {"_id": 0,"__v": 0}
-      .then (words) ->
-        res words
-      .catch (err) ->
-        console.error err
-        res Boom.wrap err
+      method = req.raw.req.method
+      if method is "GET"
+        top = Number queryArgs.top or "20"
+        state = queryArgs.state or ""
+        findOpts =
+          "group_id": gid
+          "times":
+            $gt: top
+        if state isnt ""
+          findOpts.state = findOpts
+        Word.find findOpts , {"_id": 0,"__v": 0}
+        .then (words) ->
+          res words
+        .catch (err) ->
+          console.error err
+          res Boom.wrap err
+      else
+        id = req.payload.id
+        findOpts =
+          "group_id": gid
+          "id": id
+        Word.update findOpts, $inc : times: 1 , {"_id": 0,"__v": 0}
+        .then (words) ->
+          if words.n is 0
+            word = new Word findOpts
+            word.save()
+          else
+            Word.find findOpts , {"_id": 0,"__v": 0}
+        .then (words) ->
+          res words
+        .catch (err) ->
+          console.error err
+          res Boom.wrap err
+
 
   server.route
     method: ["PUT","DELETE"]

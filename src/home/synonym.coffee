@@ -1,6 +1,6 @@
 Boom = require "boom"
 Url = require "url"
-Promise = require 'bluebird'
+Promise = require "bluebird"
 _ = require "underscore"
 # models
 groupModel = require "../models/group"
@@ -9,16 +9,16 @@ analogModel = require "../models/analog"
 
 # synonym路由
 exports.register = (server, options, next) ->
-  db = server.plugins['hapi-mongoose'].connection
-  mongoose = server.plugins['hapi-mongoose'].lib
+  db = server.plugins["hapi-mongoose"].connection
+  mongoose = server.plugins["hapi-mongoose"].lib
   Schema = mongoose.Schema
   # entry init
   groupSchema = new Schema groupModel
-  Group = db.model 'group', groupSchema
+  Group = db.model "group", groupSchema
   coreSchema = new Schema coreModel
-  Core = db.model 'core', coreSchema
+  Core = db.model "core", coreSchema
   analogSchema = new Schema analogModel
-  Analog = db.model 'analog', analogSchema
+  Analog = db.model "analog", analogSchema
 
   # groups
   server.route
