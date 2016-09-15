@@ -142,7 +142,7 @@ exports.register = (server, options, next) ->
                 return reslove "success"
               else
                 core = new Core arr
-                return core.save arr
+                return core.save()
             .then (result) ->
               reslove "success"
             .catch (err) ->
@@ -226,44 +226,47 @@ exports.register = (server, options, next) ->
         findOpts.id = req.payload.id
         Analog.find findOpts
         .then (result) ->
+          console.log result
           if result.length is 0
             analog = new Analog
               "group_id": gid
               "id": req.payload.id
               "cores": [req.payload.cores]
-            analog.save saveObj
+            analog.save()
             .then (result) ->
+              console.log result
               coreFindOpts =
                 "group_id": gid
                 "id": req.payload.cores
               coreUpdateObj =
                 "analogs": req.payload.id
-              return Core.update coreFindOpts, $addToSet: updateObj
+              return Core.update coreFindOpts, $addToSet: coreUpdateObj
             .then (result) ->
               console.log "analogs add success"
               res "result": "success"
           else
             updateObj =
               cores: req.payload.cores
+            coreFindOpts =
+              "group_id": gid
+              "id": req.payload.cores
+            coreUpdateObj =
+              "analogs": req.payload.id
             Analog.update findOpts, $addToSet: updateObj
             .then (result) ->
-              coreFindOpts =
-                "group_id": gid
-                "id": req.payload.cores
-              coreUpdateObj =
-                "analogs": req.payload.id
-              return Core.find coreFindOpts
+              return Core.find
             .then (result) ->
                 if result.length isnt 0
                   Core.update coreFindOpts, $addToSet: coreUpdateObj
+                  .then (result) ->
+                      console.log "analogs add success"
+                      res "result": "success"
                 else
                   resObj =
                     "error":"#{req.payload.cores}，在核心词没有找到"
                   res resObj
                   .code 404
-            .then (result) ->
-                console.log "analogs add success"
-                res "result": "success"
+                  return
         .catch (err) ->
           console.error err
           res Boom.wrap err

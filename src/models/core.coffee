@@ -9,5 +9,6 @@ schema =
   analogs:
     type: Array
     required: false
+    default: []
 
 module.exports = schema

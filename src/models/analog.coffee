@@ -7,7 +7,8 @@ schema =
     required: false
     unique: true
   cores:
-    type: String
+    type: Array
     required: false
+    default: []
 
 module.exports = schema
